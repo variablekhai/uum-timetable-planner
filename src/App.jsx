@@ -31,15 +31,33 @@ function App() {
 
   const handleSelectCourse = (course, group) => {
     const isClashing = selectedCourses.some((selectedCourse) => {
-      return (
-        selectedCourse.day.includes(group.day) &&
-        ((selectedCourse.startTime <= group.startTime &&
-          selectedCourse.endTime > group.startTime) ||
-          (selectedCourse.startTime < group.endTime &&
-            selectedCourse.endTime >= group.endTime))
+      // Split the days of the selected course into an array
+      const selectedCourseDays = selectedCourse.day.split(' ');
+    
+      // Split the days of the group course into an array
+      const groupDays = group.day.split(' ');
+    
+      // Check if any of the days overlap
+      const hasCommonDay = selectedCourseDays.some((selectedDay) =>
+        groupDays.includes(selectedDay)
       );
+    
+      if (hasCommonDay) {
+        // Check if the time slots overlap on the common day
+        const selectedCourseStart = selectedCourse.startTime;
+        const selectedCourseEnd = selectedCourse.endTime;
+        const groupStart = group.startTime;
+        const groupEnd = group.endTime;
+    
+        return (
+          (selectedCourseStart < groupEnd && selectedCourseEnd > groupStart) ||
+          (groupStart < selectedCourseEnd && groupEnd > selectedCourseStart)
+        );
+      }
+    
+      return false; // No clash if no common day
     });
-
+    
     if (isClashing) {
       alert("This course clashes with another selected course.");
       return;

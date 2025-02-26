@@ -54,31 +54,35 @@ export function reorganizeData(originalData) {
     const days = convertDayCodes(item.day.replace(/[()]/g, "")); // Remove parentheses and convert
 
     const [startTime, endTime] = item.time.split(" - ");
-    const endModifier = endTime.includes("AM") ? "AM" : "PM";
+    const endModifier = endTime.includes("PM") ? "PM" : "AM";
 
     // Remove AM/PM from endTime for conversion
     const cleanEndTime = endTime.replace(/(AM|PM)/, "").trim();
 
     let [startHours, startMinutes] = startTime.split(":").map(Number);
-    let [endHours] = cleanEndTime.split(":").map(Number);
+    let [endHours, endMinutes] = cleanEndTime.split(":").map(Number);
 
-    let startModifier = endModifier; // Default assumption
+    let startModifier = "AM"; // Default assumption
 
-    // If end time is in PM and start time is greater than end time, assume start is AM
-    if (endModifier === "PM" && startHours > endHours && startHours !== 12) {
-      startModifier = "AM";
-    }
-    // If end time is in PM and start time is less than end time, assume start is AM
-    else if (endModifier === "PM" && startHours < endHours) {
-      startModifier = "AM";
-    }
-    // If end time is in PM and start time is less than 12, assume start is also PM
-    else if (endModifier === "PM" && startHours < 12) {
-      startModifier = "PM";
+    // Determine the startModifier based on endModifier and startHours
+    if (endModifier === "PM") {
+      if (startHours >= 1 && startHours <= 6) {
+        startModifier = "PM"; // Early morning (1 AM - 6 AM)
+      } else if (startHours >= 7 && startHours <= 11) {
+        startModifier = "AM"; // Late morning (7 AM - 11 AM)
+      } else if (startHours === 12) {
+        startModifier = "PM"; // Noon (12 PM)
+      }
     }
 
-    const convertedStartTime = convertTo24Hour(startTime, startModifier);
-    const convertedEndTime = convertTo24Hour(cleanEndTime, endModifier);
+    const convertedStartTime = convertTo24Hour(
+      `${startHours}:${startMinutes}`,
+      startModifier
+    );
+    const convertedEndTime = convertTo24Hour(
+      `${endHours}:${endMinutes}`,
+      endModifier
+    );
 
     const group = {
       name: groupName,
