@@ -42,7 +42,7 @@ Follow these steps to set up and run the UUM Timetable Planner on your local mac
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/uum-timetable-planner.git
+   git clone https://github.com/variablekhai/uum-timetable-planner.git
    cd uum-timetable-planner
    ```
 
