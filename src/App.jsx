@@ -21,8 +21,15 @@ function App() {
   const [selectedCourses, setSelectedCourses] = useState(
     getCachedData("selectedCourses") || []
   );
-
+  const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    if (/android|iPad|iPhone|iPod/.test(userAgent)) {
+      setIsMobile(true);
+    }
+  }, []);
 
   const getCourseCatalog = async (department) => {
     setIsLoading(true);
@@ -171,6 +178,13 @@ function App() {
   return (
     <div className="container mx-auto p-6 min-h-screen">
       <Toaster richColors />
+      {isMobile && (
+        <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg mb-6">
+          <p className="text-center font-medium">
+            This website is best viewed on a desktop for the optimal experience.
+          </p>
+        </div>
+      )}
       {/* Header Section */}
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
