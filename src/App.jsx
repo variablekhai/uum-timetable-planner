@@ -239,7 +239,7 @@ function App() {
           <div className="overflow-y-auto max-h-96 pr-1">
             {isLoading ? (
               <div className="flex items-center justify-center p-8">
-                <span class="loading loading-dots loading-md"></span>
+                <span className="loading loading-dots loading-md"></span>
               </div>
             ) : courses ? (
               courses
