@@ -8,33 +8,43 @@ import { Search, School, Trash2 } from "lucide-react";
 const getCachedData = (key) => {
   const cached = localStorage.getItem(key);
   return cached ? JSON.parse(cached) : null;
-}
+};
 
 const setCachedData = (key, data) => {
   localStorage.setItem(key, JSON.stringify(data));
-}
-
-const getCourseCatalog = async (department) => {
-  const cacheKey = `courseCatalog_${department}`;
-  const cachedData = getCachedData(cacheKey);
-  if (cachedData) return cachedData;
-
-  const { data, error } = await supabase.from(department).select("*");
-  if (error) {
-    toast.error("An error occurred while fetching course data");
-    return;
-  }
-
-  const reorganizedData = reorganizeData(data);
-  setCachedData(cacheKey, reorganizedData);
-  return reorganizeData;
 };
 
 function App() {
   const [department, setDepartment] = useState(null);
   const [search, setSearch] = useState("");
   const [courses, setCourses] = useState([]);
-  const [selectedCourses, setSelectedCourses] = useState(getCachedData("selectedCourses") || []);
+  const [selectedCourses, setSelectedCourses] = useState(
+    getCachedData("selectedCourses") || []
+  );
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const getCourseCatalog = async (department) => {
+    setIsLoading(true);
+    const cacheKey = `courseCatalog_${department}`;
+    const cachedData = getCachedData(cacheKey);
+    if (cachedData) {
+      setIsLoading(false);
+      return cachedData;
+    }
+
+    const { data, error } = await supabase.from(department).select("*");
+    if (error) {
+      toast.error("An error occurred while fetching course data");
+      setIsLoading(false);
+      return;
+    }
+
+    const reorganizedData = reorganizeData(data);
+    setCachedData(cacheKey, reorganizedData);
+    setIsLoading(false);
+    return reorganizedData;
+  };
 
   useEffect(() => {
     if (department) {
@@ -190,8 +200,13 @@ function App() {
           <option value="" disabled selected>
             Select your department
           </option>
-          <option value="college_arts_sciences">College of Arts and Sciences</option>
-          <option value="cob">College of Business</option>
+          <option value="college_arts_sciences">
+            College of Arts and Sciences
+          </option>
+          <option value="college_business">College of Business</option>
+          <option value="college_law">
+            College of Law, Government & International School
+          </option>
         </select>
       </div>
 
@@ -222,7 +237,11 @@ function App() {
 
           {/* Course List */}
           <div className="overflow-y-auto max-h-96 pr-1">
-            {courses ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <span class="loading loading-dots loading-md"></span>
+              </div>
+            ) : courses ? (
               courses
                 .filter(
                   (course) =>
