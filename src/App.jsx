@@ -3,6 +3,7 @@ import supabase from "./utils/db";
 import { Toaster, toast } from "sonner";
 import { reorganizeData } from "./utils/helpers";
 import React, { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { Search, School, Trash2 } from "lucide-react";
 
 const getCachedData = (key) => {
@@ -503,6 +504,7 @@ function App() {
           </div>
         </div>
       </footer>
+      <Analytics />
     </div>
   );
 }
