@@ -1,65 +1,76 @@
 import "./App.css";
-import React, { useState, useEffect } from "react";
 import supabase from "./utils/db";
+import { Toaster, toast } from "sonner";
 import { reorganizeData } from "./utils/helpers";
+import React, { useState, useEffect } from "react";
 import { Search, School, Trash2 } from "lucide-react";
+
+const getCachedData = (key) => {
+  const cached = localStorage.getItem(key);
+  return cached ? JSON.parse(cached) : null;
+}
+
+const setCachedData = (key, data) => {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+const getCourseCatalog = async (department) => {
+  const cacheKey = `courseCatalog_${department}`;
+  const cachedData = getCachedData(cacheKey);
+  if (cachedData) return cachedData;
+
+  const { data, error } = await supabase.from(department).select("*");
+  if (error) {
+    toast.error("An error occurred while fetching course data");
+    return;
+  }
+
+  const reorganizedData = reorganizeData(data);
+  setCachedData(cacheKey, reorganizedData);
+  return reorganizeData;
+};
 
 function App() {
   const [department, setDepartment] = useState(null);
   const [search, setSearch] = useState("");
-  const [data, setData] = useState(null);
-  const [selectedCourses, setSelectedCourses] = useState([]);
-
-  async function getCourseCatalog() {
-    const { data, error } = await supabase
-      .from("college_arts_sciences")
-      .select("*");
-    if (error) {
-      console.error(error);
-    } else {
-      const reorganizedData = reorganizeData(data);
-      setData(reorganizedData);
-      console.log(reorganizedData);
-    }
-  }
+  const [courses, setCourses] = useState([]);
+  const [selectedCourses, setSelectedCourses] = useState(getCachedData("selectedCourses") || []);
 
   useEffect(() => {
-    if (department === "cas") {
-      getCourseCatalog();
+    if (department) {
+      getCourseCatalog(department).then(setCourses);
     }
   }, [department]);
 
+  useEffect(() => {
+    setCachedData("selectedCourses", selectedCourses);
+  }, [selectedCourses]);
+
   const handleSelectCourse = (course, group) => {
     const isClashing = selectedCourses.some((selectedCourse) => {
-      // Split the days of the selected course into an array
-      const selectedCourseDays = selectedCourse.day.split(' ');
-    
-      // Split the days of the group course into an array
-      const groupDays = group.day.split(' ');
-    
-      // Check if any of the days overlap
+      const selectedCourseDays = selectedCourse.day.split(", ");
+      const groupDays = group.day.split(", ");
       const hasCommonDay = selectedCourseDays.some((selectedDay) =>
         groupDays.includes(selectedDay)
       );
-    
+
       if (hasCommonDay) {
-        // Check if the time slots overlap on the common day
         const selectedCourseStart = selectedCourse.startTime;
         const selectedCourseEnd = selectedCourse.endTime;
         const groupStart = group.startTime;
         const groupEnd = group.endTime;
-    
+
         return (
           (selectedCourseStart < groupEnd && selectedCourseEnd > groupStart) ||
           (groupStart < selectedCourseEnd && groupEnd > selectedCourseStart)
         );
       }
-    
-      return false; // No clash if no common day
+
+      return false;
     });
-    
+
     if (isClashing) {
-      alert("This course clashes with another selected course.");
+      toast.error("The course you selected clashes with an existing course");
       return;
     }
 
@@ -149,6 +160,7 @@ function App() {
 
   return (
     <div className="container mx-auto p-6 min-h-screen">
+      <Toaster richColors />
       {/* Header Section */}
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
@@ -178,7 +190,7 @@ function App() {
           <option value="" disabled selected>
             Select your department
           </option>
-          <option value="cas">College of Arts and Sciences</option>
+          <option value="college_arts_sciences">College of Arts and Sciences</option>
           <option value="cob">College of Business</option>
         </select>
       </div>
@@ -210,8 +222,8 @@ function App() {
 
           {/* Course List */}
           <div className="overflow-y-auto max-h-96 pr-1">
-            {data &&
-              data
+            {courses ? (
+              courses
                 .filter(
                   (course) =>
                     course.course_name
@@ -261,7 +273,15 @@ function App() {
                       ))}
                     </div>
                   </div>
-                ))}
+                ))
+            ) : (
+              <div className="flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-gray-300 rounded-lg">
+                <p className="text-gray-500 mb-2">No courses available</p>
+                <p className="text-gray-400 text-sm">
+                  Select a department to load courses
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
