@@ -17,7 +17,15 @@ The **UUM Timetable Planner** is a web application designed to help students at 
 
 - **Frontend Framework**: [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) for fast and efficient development.
 - **Styling**: [daisyUI](https://daisyui.com/) + [TailwindCSS](https://tailwindcss.com/) for modern and responsive UI design.
-- **Database**: [Supabase](https://supabase.com/) for fast and efficient SQL database.
+- **Database**: [Supabase](https://supabase.com/) for database(SQL) management.
+- **Deployment**: [Vercel](https://vercel.com/) for deployment and hosting.
+  
+---
+
+## Live Application
+
+Check out the live application hosted on Vercel:
+[UUM Timetable Planner](https://uum-planner.vercel.app/)
   
 ---
 
